@@ -1,8 +1,0 @@
-##### local
-POST http://localhost:3009/api/login HTTP/1.1
-content-type: application/json
-
-{
-  "usuario": "admin",
-  "password": "prueba"
-}
