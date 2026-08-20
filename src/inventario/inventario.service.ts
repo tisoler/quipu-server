@@ -1,25 +1,38 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Movimiento } from '../entities/movimiento.entity';
+import { MovimientoProducto } from '../entities/movimiento-producto.entity';
+import { MovimientoMaterial } from '../entities/movimiento-material.entity';
 import { Producto } from '../entities/producto.entity';
 import { Material } from '../entities/material.entity';
 import { Almacen } from '../entities/almacen.entity';
 import { FilterInventarioDto } from './dto/filter-inventario.dto';
 import { AgruparPor } from './dto/filter-inventario.dto';
+import { FilterStockActualDto } from './dto/filter-stock-actual.dto';
+import { StockProducto } from '../entities/stock-producto.entity';
+import { StockMaterial } from '../entities/stock-material.entity';
+import { TipoArticulo } from '../entities/movimiento.types';
+
 
 @Injectable()
 export class InventarioService {
   constructor(
-    @InjectRepository(Movimiento)
-    private movimientoRepository: Repository<Movimiento>,
+    @InjectRepository(MovimientoProducto)
+    private movimientoProductoRepository: Repository<MovimientoProducto>,
+    @InjectRepository(MovimientoMaterial)
+    private movimientoMaterialRepository: Repository<MovimientoMaterial>,
     @InjectRepository(Producto)
     private productoRepository: Repository<Producto>,
     @InjectRepository(Material)
     private materialRepository: Repository<Material>,
     @InjectRepository(Almacen)
     private almacenRepository: Repository<Almacen>,
-  ) {}
+    @InjectRepository(StockProducto)
+    private stockProductoRepository: Repository<StockProducto>,
+    @InjectRepository(StockMaterial)
+    private stockMaterialRepository: Repository<StockMaterial>,
+  ) { }
+
 
   async getDatosGrafico(filters: FilterInventarioDto, empresaId: number) {
     const {
@@ -31,62 +44,40 @@ export class InventarioService {
       fechaHasta,
     } = filters;
 
-    const queryBuilder = this.movimientoRepository
-      .createQueryBuilder('movimiento')
-      .where('movimiento.idEmpresa = :empresaId', { empresaId })
-      .andWhere('movimiento.estado = :estado', { estado: 'activo' });
-
-    if (tipoArticulo) {
-      queryBuilder.andWhere('movimiento.tipoArticulo = :tipoArticulo', { tipoArticulo });
+    let fHasta = fechaHasta;
+    if (fHasta) {
+      const dateString = fHasta.toString().split('T')[0];
+      fHasta = new Date(`${dateString}T23:59:59.999`) as any;
     }
 
-    if (fechaDesde) {
-      queryBuilder.andWhere('movimiento.fecha >= :fechaDesde', { fechaDesde });
+    let movimientos: any[] = [];
+
+    if (tipoArticulo === TipoArticulo.PRODUCTO || !tipoArticulo) {
+      const prodMovs = await this.getMovimientosParaGrafico(
+        this.movimientoProductoRepository,
+        'idProducto',
+        'producto',
+        { ...filters, fechaHasta: fHasta },
+        empresaId
+      );
+      movimientos.push(...prodMovs);
     }
 
-    if (fechaHasta) {
-      queryBuilder.andWhere('movimiento.fecha <= :fechaHasta', { fechaHasta });
+    if (tipoArticulo === TipoArticulo.MATERIAL || !tipoArticulo) {
+      const matMovs = await this.getMovimientosParaGrafico(
+        this.movimientoMaterialRepository,
+        'idMaterial',
+        'material',
+        { ...filters, fechaHasta: fHasta },
+        empresaId
+      );
+      movimientos.push(...matMovs);
     }
 
-    if (agruparPor === AgruparPor.ARTICULO) {
-      if (idArticulos.length > 0) {
-        queryBuilder.andWhere('movimiento.idArticulo IN (:...idArticulos)', { idArticulos });
-      }
-      queryBuilder
-        .select([
-          'movimiento.fecha as fecha',
-          'movimiento.idArticulo as idArticulo',
-          'movimiento.tipoArticulo as tipoArticulo',
-          'MAX(movimiento.stockActualArticulo) as stock',
-        ])
-        .groupBy('movimiento.fecha')
-        .addGroupBy('movimiento.idArticulo')
-        .addGroupBy('movimiento.tipoArticulo')
-        .orderBy('movimiento.fecha', 'ASC')
-        .addOrderBy('movimiento.idArticulo', 'ASC');
-    } else {
-      // Agrupar por almacén
-      if (idAlmacenes.length > 0) {
-        queryBuilder.andWhere('movimiento.idAlmacen IN (:...idAlmacenes)', { idAlmacenes });
-      }
-      queryBuilder
-        .select([
-          'movimiento.fecha as fecha',
-          'movimiento.idArticulo as idArticulo',
-          'movimiento.tipoArticulo as tipoArticulo',
-          'movimiento.idAlmacen as idAlmacen',
-          'MAX(movimiento.stockActualAlmacen) as stock',
-        ])
-        .groupBy('movimiento.fecha')
-        .addGroupBy('movimiento.idArticulo')
-        .addGroupBy('movimiento.tipoArticulo')
-        .addGroupBy('movimiento.idAlmacen')
-        .orderBy('movimiento.fecha', 'ASC')
-        .addOrderBy('movimiento.idArticulo', 'ASC')
-        .addOrderBy('movimiento.idAlmacen', 'ASC');
-    }
+    // Si mergeamos, tenemos que re-ordenar por fecha
+    movimientos.sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
 
-    const movimientos = await queryBuilder.getRawMany();
+    // El resto de la lógica de articulosInfo se mantiene casi igual
 
     // Obtener información de artículos y almacenes para las etiquetas
     const articulosInfo = new Map();
@@ -149,20 +140,77 @@ export class InventarioService {
     }
 
     // Formatear datos para el gráfico
-    const datos = movimientos.map((m) => ({
-      fecha: m.fecha,
-      idArticulo: m.idarticulo,
-      tipoArticulo: m.tipoarticulo,
-      idAlmacen: m.idalmacen || null,
-      stock: parseFloat(m.stock || '0'),
-      label:
-        agruparPor === AgruparPor.ARTICULO
-          ? articulosInfo.get(m.idarticulo)?.nombre || `Artículo ${m.idarticulo}`
-          : `${articulosInfo.get(m.idarticulo)?.nombre || `Artículo ${m.idarticulo}`} - ${almacenesInfo.get(m.idalmacen) || 'N/A'}`,
-      stockMinimo: agruparPor === AgruparPor.ARTICULO ? articulosInfo.get(m.idarticulo)?.stockMinimo || 0 : null,
-    }));
+    const datos = movimientos.map((m) => {
+      const idArt = m.idArticulo || m.idarticulo;
+      const tArt = m.tipoArticulo || m.tipoarticulo;
+      const idAlm = m.idAlmacen || m.idalmacen || null;
+      const stockVal = parseFloat(m.stock || '0');
+
+      return {
+        fecha: m.fecha,
+        idArticulo: idArt,
+        tipoArticulo: tArt,
+        idAlmacen: idAlm,
+        stock: stockVal,
+        label:
+          agruparPor === AgruparPor.ARTICULO
+            ? articulosInfo.get(idArt)?.nombre || `Artículo ${idArt}`
+            : `${articulosInfo.get(idArt)?.nombre || `Artículo ${idArt}`} - ${almacenesInfo.get(idAlm) || 'N/A'}`,
+        stockMinimo: agruparPor === AgruparPor.ARTICULO ? articulosInfo.get(idArt)?.stockMinimo || 0 : null,
+      };
+    });
 
     return datos;
+  }
+
+  private async getMovimientosParaGrafico(
+    repository: Repository<any>,
+    idField: string,
+    tipo: string,
+    filters: FilterInventarioDto,
+    empresaId: number
+  ) {
+    const { agruparPor, idArticulos, idAlmacenes, fechaDesde, fechaHasta } = filters;
+    const queryBuilder = repository.createQueryBuilder('movimiento')
+      .where('movimiento.idEmpresa = :empresaId', { empresaId })
+      .andWhere('movimiento.estado = :estado', { estado: 'activo' });
+
+    if (fechaDesde) queryBuilder.andWhere('movimiento.fecha >= :fechaDesde', { fechaDesde });
+    if (fechaHasta) queryBuilder.andWhere('movimiento.fecha <= :fechaHasta', { fechaHasta });
+
+    if (agruparPor === AgruparPor.ARTICULO) {
+      if (idArticulos && idArticulos.length > 0) {
+        queryBuilder.andWhere(`movimiento.${idField} IN (:...idArticulos)`, { idArticulos });
+      }
+      queryBuilder
+        .select([
+          'movimiento.fecha as fecha',
+          `movimiento.${idField} as idArticulo`,
+          `'${tipo}' as tipoArticulo`,
+          'MAX(movimiento.stockActualArticulo) as stock',
+        ])
+        .groupBy('movimiento.fecha')
+        .addGroupBy(`movimiento.${idField}`)
+        .orderBy('movimiento.fecha', 'ASC');
+    } else {
+      if (idAlmacenes && idAlmacenes.length > 0) {
+        queryBuilder.andWhere('movimiento.idAlmacen IN (:...idAlmacenes)', { idAlmacenes });
+      }
+      queryBuilder
+        .select([
+          'movimiento.fecha as fecha',
+          `movimiento.${idField} as idArticulo`,
+          `'${tipo}' as tipoArticulo`,
+          'movimiento.idAlmacen as idAlmacen',
+          'MAX(movimiento.stockActualAlmacen) as stock',
+        ])
+        .groupBy('movimiento.fecha')
+        .addGroupBy(`movimiento.${idField}`)
+        .addGroupBy('movimiento.idAlmacen')
+        .orderBy('movimiento.fecha', 'ASC');
+    }
+
+    return queryBuilder.getRawMany();
   }
 
   async getArticulosDisponibles(tipoArticulo: string | undefined, empresaId: number) {
@@ -193,4 +241,79 @@ export class InventarioService {
       select: ['id', 'nombre'],
     });
   }
+
+  async getStockActual(filters: FilterStockActualDto, empresaId: number) {
+    const { tipoArticulo, idAlmacenes, search } = filters;
+    let results: any[] = [];
+
+    const buildQuery = (repository: Repository<any>, idField: string, tArt: string) => {
+      const qb = repository.createQueryBuilder('stock')
+        .leftJoinAndSelect('stock.almacen', 'almacen')
+        .where('stock.idEmpresa = :empresaId', { empresaId });
+
+      if (idAlmacenes && idAlmacenes.length > 0) {
+        qb.andWhere('stock.idAlmacen IN (:...idAlmacenes)', { idAlmacenes });
+      }
+      return qb;
+    };
+
+    if (tipoArticulo === TipoArticulo.PRODUCTO) {
+      const prodStocks = await buildQuery(this.stockProductoRepository, 'idProducto', 'producto').getMany();
+      results.push(...prodStocks.map(s => ({ ...s, idArticulo: s.idProducto, tipoArticulo: 'producto' })));
+    } else if (tipoArticulo === TipoArticulo.MATERIAL) {
+      const matStocks = await buildQuery(this.stockMaterialRepository, 'idMaterial', 'material').getMany();
+      results.push(...matStocks.map(s => ({ ...s, idArticulo: s.idMaterial, tipoArticulo: 'material' })));
+    }
+
+    // Obtener info de productos y materiales para los nombres/códigos
+    const productosIds = results.filter(r => r.tipoArticulo === 'producto').map(r => r.idArticulo);
+    const materialesIds = results.filter(r => r.tipoArticulo === 'material').map(r => r.idArticulo);
+
+    const productosInfo = new Map();
+    const materialesInfo = new Map();
+
+    if (productosIds.length > 0) {
+      const productos = await this.productoRepository.find({
+        where: productosIds.map(id => ({ id, idEmpresa: empresaId })) as any,
+      });
+      productos.forEach(p => productosInfo.set(p.id, p));
+    } else if (materialesIds.length > 0) {
+      const materiales = await this.materialRepository.find({
+        where: materialesIds.map(id => ({ id, idEmpresa: empresaId })) as any,
+      });
+      materiales.forEach(m => materialesInfo.set(m.id, m));
+    }
+
+    // Formatear y filtrar por search
+    let formatted = results.map(r => {
+      const articulo = r.tipoArticulo === 'producto'
+        ? productosInfo.get(r.idArticulo)
+        : materialesInfo.get(r.idArticulo);
+
+      const cantidad = parseFloat(r.stockActual.toString());
+      const precio = articulo?.precio ? parseFloat(articulo.precio.toString()) : 0;
+
+      return {
+        ...r,
+        nombre: articulo?.nombre || 'N/A',
+        codigo: articulo?.codigo || 'N/A',
+        stockMinimo: articulo?.stockMinimo || 0,
+        tipoProducto: r.tipoArticulo === 'producto' ? (articulo?.tipoProducto || null) : undefined,
+        precio: precio,
+        total: cantidad * precio,
+        cantidad: cantidad, // Para compatibilidad con el frontend si espera 'cantidad'
+      };
+    });
+
+    if (search) {
+      const searchLower = search.toLowerCase();
+      formatted = formatted.filter(f =>
+        f.nombre.toLowerCase().includes(searchLower) ||
+        f.codigo.toLowerCase().includes(searchLower)
+      );
+    }
+
+    return formatted;
+  }
 }
+

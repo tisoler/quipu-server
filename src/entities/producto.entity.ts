@@ -1,5 +1,6 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { Empresa } from './empresa.entity';
+import { Rubro } from './rubro.entity';
 
 export enum EstadoProducto {
   ACTIVO = 'activo',
@@ -13,6 +14,9 @@ export class Producto {
 
   @Column()
   nombre: string;
+
+  @Column({ nullable: true })
+  codigo: string;
 
   @Column({ type: 'text', nullable: true })
   descripcion: string;
@@ -37,8 +41,19 @@ export class Producto {
   @Column({ name: 'stock_minimo', default: 0 })
   stockMinimo: number;
 
+  @Column({ name: 'tipo_producto', type: 'varchar', length: 1, nullable: true })
+  tipoProducto: string | null;
+
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   precio: number;
+
+  @ManyToMany(() => Rubro, (rubro) => rubro.productos)
+  @JoinTable({
+    name: 'rubro_producto',
+    joinColumn: { name: 'id_producto', referencedColumnName: 'id' },
+    inverseJoinColumn: { name: 'id_rubro', referencedColumnName: 'id' }
+  })
+  rubros: Rubro[];
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

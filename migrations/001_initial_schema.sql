@@ -12,58 +12,6 @@ CREATE TABLE empresa (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Tabla usuario
-CREATE TABLE usuario (
-    id SERIAL PRIMARY KEY,
-    nombre_usuario VARCHAR(100) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    id_empresa INTEGER NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- Tabla rol
-CREATE TABLE rol (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    id_empresa INTEGER NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(nombre, id_empresa)
-);
-
--- Tabla permiso
-CREATE TABLE permiso (
-    id SERIAL PRIMARY KEY,
-    nombre VARCHAR(100) NOT NULL,
-    id_empresa INTEGER NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(nombre, id_empresa)
-);
-
--- Tabla usuario_rol
-CREATE TABLE usuario_rol (
-    id SERIAL PRIMARY KEY,
-    id_usuario INTEGER NOT NULL REFERENCES usuario(id) ON DELETE CASCADE,
-    id_rol INTEGER NOT NULL REFERENCES rol(id) ON DELETE CASCADE,
-    id_empresa INTEGER NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(id_usuario, id_rol, id_empresa)
-);
-
--- Tabla rol_permisos
-CREATE TABLE rol_permisos (
-    id SERIAL PRIMARY KEY,
-    id_rol INTEGER NOT NULL REFERENCES rol(id) ON DELETE CASCADE,
-    id_permiso INTEGER NOT NULL REFERENCES permiso(id) ON DELETE CASCADE,
-    id_empresa INTEGER NOT NULL REFERENCES empresa(id) ON DELETE CASCADE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(id_rol, id_permiso, id_empresa)
-);
-
 -- Tabla producto
 CREATE TABLE producto (
     id SERIAL PRIMARY KEY,
@@ -141,12 +89,6 @@ CREATE TABLE formula_producto (
 );
 
 -- Índices para mejorar performance
-CREATE INDEX idx_usuario_id_empresa ON usuario(id_empresa);
-CREATE INDEX idx_usuario_rol_id_usuario ON usuario_rol(id_usuario);
-CREATE INDEX idx_usuario_rol_id_rol ON usuario_rol(id_rol);
-CREATE INDEX idx_usuario_rol_id_empresa ON usuario_rol(id_empresa);
-CREATE INDEX idx_rol_permisos_id_rol ON rol_permisos(id_rol);
-CREATE INDEX idx_rol_permisos_id_permiso ON rol_permisos(id_permiso);
 CREATE INDEX idx_producto_id_empresa ON producto(id_empresa);
 CREATE INDEX idx_material_id_empresa ON material(id_empresa);
 CREATE INDEX idx_almacen_id_empresa ON almacen(id_empresa);
@@ -168,11 +110,6 @@ $$ language 'plpgsql';
 
 -- Triggers para updated_at
 CREATE TRIGGER update_empresa_updated_at BEFORE UPDATE ON empresa FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_usuario_updated_at BEFORE UPDATE ON usuario FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_rol_updated_at BEFORE UPDATE ON rol FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_permiso_updated_at BEFORE UPDATE ON permiso FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_usuario_rol_updated_at BEFORE UPDATE ON usuario_rol FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-CREATE TRIGGER update_rol_permisos_updated_at BEFORE UPDATE ON rol_permisos FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_producto_updated_at BEFORE UPDATE ON producto FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_almacen_updated_at BEFORE UPDATE ON almacen FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 CREATE TRIGGER update_stock_producto_updated_at BEFORE UPDATE ON stock_producto FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();

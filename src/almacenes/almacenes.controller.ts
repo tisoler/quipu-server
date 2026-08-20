@@ -14,17 +14,17 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 import { AlmacenesService } from './almacenes.service';
 import { CreateAlmacenDto } from './dto/create-almacen.dto';
 import { UpdateAlmacenDto } from './dto/update-almacen.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FirebaseGuard } from '../auth/guards/firebase.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Almacen } from '../entities/almacen.entity';
 
 @ApiTags('almacenes')
 @Controller('almacenes')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(FirebaseGuard, PermissionsGuard)
 @ApiBearerAuth()
 export class AlmacenesController {
-  constructor(private readonly almacenesService: AlmacenesService) {}
+  constructor(private readonly almacenesService: AlmacenesService) { }
 
   @Post()
   @Permissions('escritura:almacen')

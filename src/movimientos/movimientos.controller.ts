@@ -14,26 +14,34 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { MovimientosService } from './movimientos.service';
 import { CreateMovimientoDto } from './dto/create-movimiento.dto';
+import { CreateTransferenciaDto } from './dto/create-transferencia.dto';
 import { UpdateMovimientoDto } from './dto/update-movimiento.dto';
 import { FilterMovimientoDto } from './dto/filter-movimiento.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FirebaseGuard } from '../auth/guards/firebase.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
-import { Movimiento } from '../entities/movimiento.entity';
 
 @ApiTags('movimientos')
 @Controller('movimientos')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(FirebaseGuard, PermissionsGuard)
 @ApiBearerAuth()
 export class MovimientosController {
-  constructor(private readonly movimientosService: MovimientosService) {}
+  constructor(private readonly movimientosService: MovimientosService) { }
 
   @Post()
   @Permissions('escritura:movimiento')
   @ApiOperation({ summary: 'Crear un nuevo movimiento' })
-  @ApiResponse({ status: 201, description: 'Movimiento creado', type: Movimiento })
+  @ApiResponse({ status: 201, description: 'Movimiento creado' })
   create(@Body() createMovimientoDto: CreateMovimientoDto, @Request() req) {
-    return this.movimientosService.create(createMovimientoDto, req.user.idEmpresa, req.user.id);
+    return this.movimientosService.create(createMovimientoDto, req.user.idEmpresa, req.user.id, req.user.nombreUsuario);
+  }
+
+  @Post('transferencia')
+  @Permissions('escritura:movimiento')
+  @ApiOperation({ summary: 'Realizar transferencia de stock entre almacenes' })
+  @ApiResponse({ status: 201, description: 'Transferencia realizada' })
+  transferencia(@Body() createTransferenciaDto: CreateTransferenciaDto, @Request() req) {
+    return this.movimientosService.transferencia(createTransferenciaDto, req.user.idEmpresa, req.user.id, req.user.nombreUsuario);
   }
 
   @Get()
@@ -47,7 +55,7 @@ export class MovimientosController {
   @Get(':id')
   @Permissions('lectura:movimiento')
   @ApiOperation({ summary: 'Obtener un movimiento por ID' })
-  @ApiResponse({ status: 200, description: 'Movimiento encontrado', type: Movimiento })
+  @ApiResponse({ status: 200, description: 'Movimiento encontrado' })
   @ApiResponse({ status: 404, description: 'Movimiento no encontrado' })
   findOne(@Param('id', ParseIntPipe) id: number, @Request() req) {
     return this.movimientosService.findOne(id, req.user.idEmpresa);
@@ -56,7 +64,7 @@ export class MovimientosController {
   @Patch(':id')
   @Permissions('escritura:movimiento')
   @ApiOperation({ summary: 'Actualizar un movimiento' })
-  @ApiResponse({ status: 200, description: 'Movimiento actualizado', type: Movimiento })
+  @ApiResponse({ status: 200, description: 'Movimiento actualizado' })
   update(
     @Param('id', ParseIntPipe) id: number,
     @Body() updateMovimientoDto: UpdateMovimientoDto,
@@ -68,7 +76,7 @@ export class MovimientosController {
   @Delete(':id')
   @Permissions('escritura:movimiento')
   @ApiOperation({ summary: 'Eliminar un movimiento (borrado lógico)' })
-  @ApiResponse({ status: 200, description: 'Movimiento eliminado', type: Movimiento })
+  @ApiResponse({ status: 200, description: 'Movimiento eliminado' })
   remove(@Param('id', ParseIntPipe) id: number, @Request() req) {
     return this.movimientosService.remove(id, req.user.idEmpresa);
   }

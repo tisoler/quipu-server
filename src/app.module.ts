@@ -7,16 +7,18 @@ import { MaterialesModule } from './materiales/materiales.module';
 import { AlmacenesModule } from './almacenes/almacenes.module';
 import { MovimientosModule } from './movimientos/movimientos.module';
 import { InventarioModule } from './inventario/inventario.module';
+import { EmpresasModule } from './empresas/empresas.module';
 import { Empresa } from './entities/empresa.entity';
-import { Usuario } from './entities/usuario.entity';
-import { Rol } from './entities/rol.entity';
-import { Permiso } from './entities/permiso.entity';
-import { UsuarioRol } from './entities/usuario-rol.entity';
-import { RolPermisos } from './entities/rol-permisos.entity';
 import { Producto } from './entities/producto.entity';
 import { Material } from './entities/material.entity';
 import { Almacen } from './entities/almacen.entity';
-import { Movimiento } from './entities/movimiento.entity';
+import { MovimientoProducto } from './entities/movimiento-producto.entity';
+import { MovimientoMaterial } from './entities/movimiento-material.entity';
+import { StockProducto } from './entities/stock-producto.entity';
+import { StockMaterial } from './entities/stock-material.entity';
+import { Rubro } from './entities/rubro.entity';
+import { RubrosModule } from './rubros/rubros.module';
+
 
 @Module({
   imports: [
@@ -34,16 +36,16 @@ import { Movimiento } from './entities/movimiento.entity';
         database: configService.get<string>('DB_DATABASE'),
         entities: [
           Empresa,
-          Usuario,
-          Rol,
-          Permiso,
-          UsuarioRol,
-          RolPermisos,
           Producto,
           Material,
           Almacen,
-          Movimiento,
+          MovimientoProducto,
+          MovimientoMaterial,
+          StockProducto,
+          StockMaterial,
+          Rubro,
         ],
+
         synchronize: false, // Usar migraciones en producción
         logging: true,
       }),
@@ -55,6 +57,8 @@ import { Movimiento } from './entities/movimiento.entity';
     AlmacenesModule,
     MovimientosModule,
     InventarioModule,
+    EmpresasModule,
+    RubrosModule,
   ],
 })
-export class AppModule {}
+export class AppModule { }

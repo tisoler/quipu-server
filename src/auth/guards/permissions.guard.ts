@@ -1,13 +1,11 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { AuthService } from '../auth.service';
 
 @Injectable()
 export class PermissionsGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private authService: AuthService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredPermission = this.reflector.get<string>(
@@ -26,11 +24,9 @@ export class PermissionsGuard implements CanActivate {
       throw new ForbiddenException('Usuario no autenticado');
     }
 
-    const hasPermission = await this.authService.hasPermission(
-      user.id,
-      user.idEmpresa,
-      requiredPermission,
-    );
+    // Ya no llamamos al authService porque los permisos ya fueron cargados 
+    // desde Firestore en el FirebaseStrategy y están en el objeto user de la request.
+    const hasPermission = user.permisos?.includes(requiredPermission);
 
     if (!hasPermission) {
       throw new ForbiddenException(`No tiene permiso: ${requiredPermission}`);

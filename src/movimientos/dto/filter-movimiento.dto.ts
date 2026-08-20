@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, IsDateString, IsNumber, Min } from 'class-validator';
-import { TipoMovimiento, TipoArticulo, EstadoMovimiento } from '../../entities/movimiento.entity';
+import { TipoMovimiento, TipoArticulo, EstadoMovimiento } from '../../entities/movimiento.types';
 import { Type } from 'class-transformer';
 
 export class FilterMovimientoDto {

@@ -14,6 +14,9 @@ export class Material {
   @Column()
   nombre: string;
 
+  @Column({ nullable: true })
+  codigo: string;
+
   @Column({ type: 'text', nullable: true })
   descripcion: string;
 

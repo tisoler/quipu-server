@@ -1,7 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Empresa } from './empresa.entity';
 import { Almacen } from './almacen.entity';
-import { TipoArticulo } from './movimiento.entity';
+import { TipoArticulo } from './movimiento.types';
 
 @Entity('inventario')
 export class Inventario {

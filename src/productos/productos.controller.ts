@@ -15,17 +15,17 @@ import { ProductosService } from './productos.service';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { UpdateEstadoProductoDto } from './dto/update-estado-producto.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FirebaseGuard } from '../auth/guards/firebase.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Producto } from '../entities/producto.entity';
 
 @ApiTags('productos')
 @Controller('productos')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(FirebaseGuard, PermissionsGuard)
 @ApiBearerAuth()
 export class ProductosController {
-  constructor(private readonly productosService: ProductosService) {}
+  constructor(private readonly productosService: ProductosService) { }
 
   @Post()
   @Permissions('escritura:producto')

@@ -11,6 +11,11 @@ export class CreateMaterialDto {
   @ApiProperty({ required: false })
   @IsString()
   @IsOptional()
+  codigo?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
   descripcion?: string;
 
   @ApiProperty({ required: false })

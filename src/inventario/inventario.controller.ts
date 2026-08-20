@@ -2,16 +2,18 @@ import { Controller, Get, Query, UseGuards, Request } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { InventarioService } from './inventario.service';
 import { FilterInventarioDto } from './dto/filter-inventario.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FilterStockActualDto } from './dto/filter-stock-actual.dto';
+
+import { FirebaseGuard } from '../auth/guards/firebase.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 
 @ApiTags('inventario')
 @Controller('inventario')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(FirebaseGuard, PermissionsGuard)
 @ApiBearerAuth()
 export class InventarioController {
-  constructor(private readonly inventarioService: InventarioService) {}
+  constructor(private readonly inventarioService: InventarioService) { }
 
   @Get('grafico')
   @Permissions('lectura:inventario')
@@ -36,4 +38,13 @@ export class InventarioController {
   getAlmacenes(@Request() req) {
     return this.inventarioService.getAlmacenesDisponibles(req.user.idEmpresa);
   }
+
+  @Get('stock-actual')
+  @Permissions('lectura:inventario')
+  @ApiOperation({ summary: 'Obtener el stock actual por producto y almacén' })
+  @ApiResponse({ status: 200, description: 'Stock actual' })
+  getStockActual(@Query() filters: FilterStockActualDto, @Request() req) {
+    return this.inventarioService.getStockActual(filters, req.user.idEmpresa);
+  }
 }
+

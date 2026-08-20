@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, In } from 'typeorm';
 import { Producto, EstadoProducto } from '../entities/producto.entity';
+import { Rubro } from '../entities/rubro.entity';
 import { CreateProductoDto } from './dto/create-producto.dto';
 import { UpdateProductoDto } from './dto/update-producto.dto';
 import { UpdateEstadoProductoDto } from './dto/update-estado-producto.dto';
@@ -11,11 +12,14 @@ export class ProductosService {
   constructor(
     @InjectRepository(Producto)
     private productoRepository: Repository<Producto>,
-  ) {}
+    @InjectRepository(Rubro)
+    private rubroRepository: Repository<Rubro>,
+  ) { }
 
   async findAll(empresaId: number): Promise<Producto[]> {
     return this.productoRepository.find({
       where: { idEmpresa: empresaId },
+      relations: ['rubros'],
       order: { nombre: 'ASC' },
     });
   }
@@ -23,6 +27,7 @@ export class ProductosService {
   async findOne(id: number, empresaId: number): Promise<Producto> {
     const producto = await this.productoRepository.findOne({
       where: { id, idEmpresa: empresaId },
+      relations: ['rubros'],
     });
 
     if (!producto) {
@@ -33,11 +38,19 @@ export class ProductosService {
   }
 
   async create(createProductoDto: CreateProductoDto, empresaId: number): Promise<Producto> {
+    const { rubroIds, ...productData } = createProductoDto;
+
     const producto = this.productoRepository.create({
-      ...createProductoDto,
+      ...productData,
       idEmpresa: empresaId,
       estado: createProductoDto.estado || EstadoProducto.ACTIVO,
     });
+
+    if (rubroIds && rubroIds.length > 0) {
+      producto.rubros = await this.rubroRepository.find({
+        where: { id: In(rubroIds), idEmpresa: empresaId },
+      });
+    }
 
     return this.productoRepository.save(producto);
   }
@@ -47,8 +60,21 @@ export class ProductosService {
     updateProductoDto: UpdateProductoDto,
     empresaId: number,
   ): Promise<Producto> {
+    const { rubroIds, ...productData } = updateProductoDto;
     const producto = await this.findOne(id, empresaId);
-    Object.assign(producto, updateProductoDto);
+
+    Object.assign(producto, productData);
+
+    if (rubroIds !== undefined) {
+      if (rubroIds.length > 0) {
+        producto.rubros = await this.rubroRepository.find({
+          where: { id: In(rubroIds), idEmpresa: empresaId },
+        });
+      } else {
+        producto.rubros = [];
+      }
+    }
+
     return this.productoRepository.save(producto);
   }
 

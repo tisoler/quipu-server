@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, Min, IsIn, IsArray } from 'class-validator';
 import { EstadoProducto } from '../../entities/producto.entity';
 
 export class CreateProductoDto {
@@ -7,6 +7,11 @@ export class CreateProductoDto {
   @IsString()
   @IsNotEmpty()
   nombre: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  codigo?: string;
 
   @ApiProperty({ required: false })
   @IsString()
@@ -34,4 +39,15 @@ export class CreateProductoDto {
   @Min(0)
   @IsOptional()
   precio?: number;
+
+  @ApiProperty({ required: false, enum: ['A', 'B', 'C'] })
+  @IsString()
+  @IsOptional()
+  @IsIn(['A', 'B', 'C'])
+  tipoProducto?: string;
+
+  @ApiProperty({ type: [Number], required: false })
+  @IsArray()
+  @IsOptional()
+  rubroIds?: number[];
 }

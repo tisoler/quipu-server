@@ -1,5 +1,4 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, OneToMany } from 'typeorm';
-import { Usuario } from './usuario.entity';
 import { Producto } from './producto.entity';
 import { Material } from './material.entity';
 import { Almacen } from './almacen.entity';
@@ -26,9 +25,6 @@ export class Empresa {
 
   @UpdateDateColumn({ name: 'updated_at' })
   updatedAt: Date;
-
-  @OneToMany(() => Usuario, (usuario) => usuario.empresa)
-  usuarios: Usuario[];
 
   @OneToMany(() => Producto, (producto) => producto.empresa)
   productos: Producto[];

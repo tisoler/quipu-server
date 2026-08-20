@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min, ValidateIf } from 'class-validator';
-import { TipoMovimiento, TipoArticulo } from '../../entities/movimiento.entity';
+import { TipoMovimiento, TipoArticulo } from '../../entities/movimiento.types';
 
 export class CreateMovimientoDto {
   @ApiProperty({ enum: TipoArticulo })

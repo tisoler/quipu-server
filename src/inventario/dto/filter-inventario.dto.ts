@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsOptional, IsString, IsDateString, IsArray, IsIn } from 'class-validator';
-import { TipoArticulo } from '../../entities/movimiento.entity';
+import { TipoArticulo } from '../../entities/movimiento.types';
 import { Type } from 'class-transformer';
 
 export enum AgruparPor {

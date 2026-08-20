@@ -15,17 +15,17 @@ import { MaterialesService } from './materiales.service';
 import { CreateMaterialDto } from './dto/create-material.dto';
 import { UpdateMaterialDto } from './dto/update-material.dto';
 import { UpdateEstadoMaterialDto } from './dto/update-estado-material.dto';
-import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { FirebaseGuard } from '../auth/guards/firebase.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Material } from '../entities/material.entity';
 
 @ApiTags('materiales')
 @Controller('materiales')
-@UseGuards(JwtAuthGuard, PermissionsGuard)
+@UseGuards(FirebaseGuard, PermissionsGuard)
 @ApiBearerAuth()
 export class MaterialesController {
-  constructor(private readonly materialesService: MaterialesService) {}
+  constructor(private readonly materialesService: MaterialesService) { }
 
   @Post()
   @Permissions('escritura:material')
