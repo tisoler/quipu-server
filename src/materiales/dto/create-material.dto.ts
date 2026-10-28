@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, Min } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, Min, ValidateIf } from 'class-validator';
 import { EstadoMaterial } from '../../entities/material.entity';
 
 export class CreateMaterialDto {
@@ -39,4 +39,9 @@ export class CreateMaterialDto {
   @Min(0)
   @IsOptional()
   precio?: number;
+
+  @ApiProperty({ required: false, nullable: true })
+  @ValidateIf((_, value) => value !== null)
+  @IsNumber()
+  idProveedor?: number | null;
 }

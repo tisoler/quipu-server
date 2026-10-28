@@ -1,6 +1,7 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn, ManyToMany, JoinTable } from 'typeorm';
 import { Empresa } from './empresa.entity';
 import { Rubro } from './rubro.entity';
+import { Proveedor } from './proveedor.entity';
 
 export enum EstadoProducto {
   ACTIVO = 'activo',
@@ -46,6 +47,25 @@ export class Producto {
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   precio: number;
+
+  @Column({ name: 'precio_con_iva', default: false })
+  precioConIva: boolean;
+
+  @Column({ name: 'alicuota_iva', type: 'decimal', precision: 5, scale: 2, default: 21 })
+  alicuotaIva: number;
+
+  @Column({ nullable: true })
+  talle: string | null;
+
+  @Column({ nullable: true })
+  color: string | null;
+
+  @Column({ name: 'id_proveedor', nullable: true })
+  idProveedor: number | null;
+
+  @ManyToOne(() => Proveedor)
+  @JoinColumn({ name: 'id_proveedor' })
+  proveedor: Proveedor | null;
 
   @ManyToMany(() => Rubro, (rubro) => rubro.productos)
   @JoinTable({

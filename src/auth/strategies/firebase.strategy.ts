@@ -75,6 +75,7 @@ export class FirebaseStrategy extends PassportStrategy(Strategy, 'firebase') {
         email: decodedUser.email,
         idEmpresa: idEmpresa,
         nombreEmpresa: empresa?.nombre || null,
+        condicionIvaEmpresa: empresa?.condicionIva || null,
         roles: roles,
         permisos: permisos,
       };

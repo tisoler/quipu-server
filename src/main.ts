@@ -8,7 +8,7 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: ['http://localhost:3063', 'http://localhost:5173', 'https://quipu.tisoler.net.ar'],
+    origin: ['http://localhost:3036', 'http://localhost:5173', 'https://quipu1.tisoler.net.ar'],
     credentials: true,
   });
 

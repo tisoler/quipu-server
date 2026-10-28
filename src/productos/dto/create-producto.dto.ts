@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, Min, IsIn, IsArray } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsNumber, IsEnum, Min, IsIn, IsArray, IsBoolean, ValidateIf } from 'class-validator';
 import { EstadoProducto } from '../../entities/producto.entity';
 
 export class CreateProductoDto {
@@ -40,6 +40,17 @@ export class CreateProductoDto {
   @IsOptional()
   precio?: number;
 
+  @ApiProperty({ required: false, default: false, description: 'Si el precio ya incluye IVA' })
+  @IsBoolean()
+  @IsOptional()
+  precioConIva?: boolean;
+
+  @ApiProperty({ required: false, default: 21, description: 'Alícuota de IVA (21, 10.5, 27, 5, 2.5, 0)' })
+  @IsNumber()
+  @Min(0)
+  @IsOptional()
+  alicuotaIva?: number;
+
   @ApiProperty({ required: false, enum: ['A', 'B', 'C'] })
   @IsString()
   @IsOptional()
@@ -50,4 +61,19 @@ export class CreateProductoDto {
   @IsArray()
   @IsOptional()
   rubroIds?: number[];
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  talle?: string;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsOptional()
+  color?: string;
+
+  @ApiProperty({ required: false, nullable: true })
+  @ValidateIf((_, value) => value !== null)
+  @IsNumber()
+  idProveedor?: number | null;
 }

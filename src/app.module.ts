@@ -18,6 +18,23 @@ import { StockProducto } from './entities/stock-producto.entity';
 import { StockMaterial } from './entities/stock-material.entity';
 import { Rubro } from './entities/rubro.entity';
 import { RubrosModule } from './rubros/rubros.module';
+import { CajaPuesto } from './entities/caja-puesto.entity';
+import { CajaCentral } from './entities/caja-central.entity';
+import { PuestosModule } from './puestos/puestos.module';
+import { Proveedor } from './entities/proveedor.entity';
+import { ProveedoresModule } from './proveedores/proveedores.module';
+import { Notificacion } from './entities/notificacion.entity';
+import { NotificacionesModule } from './notificaciones/notificaciones.module';
+import { Cliente } from './entities/cliente.entity';
+import { PuntoVenta } from './entities/punto-venta.entity';
+import { Venta } from './entities/venta.entity';
+import { Comprobante } from './entities/comprobante.entity';
+import { CredencialesArca } from './entities/credenciales-arca.entity';
+import { TicketAcceso } from './entities/ticket-acceso.entity';
+import { ClientesModule } from './clientes/clientes.module';
+import { ConfiguracionModule } from './configuracion/configuracion.module';
+import { FacturacionModule } from './facturacion/facturacion.module';
+import { SpacesModule } from './spaces/spaces.module';
 
 
 @Module({
@@ -44,6 +61,16 @@ import { RubrosModule } from './rubros/rubros.module';
           StockProducto,
           StockMaterial,
           Rubro,
+          CajaPuesto,
+          CajaCentral,
+          Proveedor,
+          Notificacion,
+          Cliente,
+          PuntoVenta,
+          Venta,
+          Comprobante,
+          CredencialesArca,
+          TicketAcceso,
         ],
 
         synchronize: false, // Usar migraciones en producción
@@ -59,6 +86,13 @@ import { RubrosModule } from './rubros/rubros.module';
     InventarioModule,
     EmpresasModule,
     RubrosModule,
+    PuestosModule,
+    ProveedoresModule,
+    NotificacionesModule,
+    ClientesModule,
+    ConfiguracionModule,
+    FacturacionModule,
+    SpacesModule,
   ],
 })
 export class AppModule { }

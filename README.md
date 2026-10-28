@@ -32,8 +32,8 @@ psql -U postgres -d quipu -f migrations/001_initial_schema.sql
 pnpm run start:dev
 ```
 
-El servidor estará disponible en `http://localhost:3062`
-La documentación Swagger estará disponible en `http://localhost:3062/docs`
+El servidor estará disponible en `http://localhost:3035`
+La documentación Swagger estará disponible en `http://localhost:3035/docs`
 
 ## Estructura del Proyecto
 

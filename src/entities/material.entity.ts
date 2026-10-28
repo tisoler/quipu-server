@@ -1,5 +1,6 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { Empresa } from './empresa.entity';
+import { Proveedor } from './proveedor.entity';
 
 export enum EstadoMaterial {
   ACTIVO = 'activo',
@@ -42,6 +43,13 @@ export class Material {
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   precio: number;
+
+  @Column({ name: 'id_proveedor', nullable: true })
+  idProveedor: number | null;
+
+  @ManyToOne(() => Proveedor)
+  @JoinColumn({ name: 'id_proveedor' })
+  proveedor: Proveedor | null;
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;

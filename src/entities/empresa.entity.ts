@@ -20,6 +20,18 @@ export class Empresa {
   @Column({ unique: true })
   cuit: string;
 
+  @Column({ name: 'razon_social', type: 'varchar', length: 255, nullable: true })
+  razonSocial: string | null;
+
+  @Column({ name: 'condicion_iva', type: 'varchar', length: 100, default: 'IVA Responsable Inscripto' })
+  condicionIva: string;
+
+  @Column({ name: 'fecha_inicio_actividades', type: 'date', nullable: true })
+  fechaInicioActividades: string | null;
+
+  @Column({ type: 'varchar', length: 20, nullable: true })
+  iibb: string | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

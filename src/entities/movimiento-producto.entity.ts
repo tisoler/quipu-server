@@ -2,7 +2,9 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import { Empresa } from './empresa.entity';
 import { Almacen } from './almacen.entity';
 import { Producto } from './producto.entity';
-import { TipoMovimiento, EstadoMovimiento } from './movimiento.types';
+import { CajaPuesto } from './caja-puesto.entity';
+import { Venta } from './venta.entity';
+import { TipoMovimiento, EstadoMovimiento, TipoPago } from './movimiento.types';
 
 @Entity('movimiento_producto')
 export class MovimientoProducto {
@@ -71,7 +73,30 @@ export class MovimientoProducto {
     @Column({ name: 'stock_actual_almacen', type: 'decimal', precision: 10, scale: 2, default: 0 })
     stockActualAlmacen: number;
 
-    @CreateDateColumn({ name: 'created_at' })
+    @Column({ name: 'id_caja_puesto', nullable: true })
+    idCajaPuesto: number | null;
+
+    @ManyToOne(() => CajaPuesto)
+    @JoinColumn({ name: 'id_caja_puesto' })
+    cajaPuesto: CajaPuesto | null;
+
+  @Column({ name: 'tipo_pago', type: 'varchar', length: 20, nullable: true })
+  tipoPago: TipoPago | null;
+
+  @Column({ name: 'id_venta', nullable: true })
+  idVenta: number | null;
+
+  @ManyToOne(() => Venta, (venta) => venta.movimientos)
+  @JoinColumn({ name: 'id_venta' })
+  venta: Venta | null;
+
+  @Column({ name: 'precio_con_iva', default: false })
+  precioConIva: boolean;
+
+  @Column({ name: 'alicuota_iva', type: 'decimal', precision: 5, scale: 2, default: 21 })
+  alicuotaIva: number;
+
+  @CreateDateColumn({ name: 'created_at' })
     createdAt: Date;
 
     @UpdateDateColumn({ name: 'updated_at' })

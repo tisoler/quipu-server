@@ -19,6 +19,9 @@ export class Almacen {
   @JoinColumn({ name: 'id_empresa' })
   empresa: Empresa;
 
+  @Column({ name: 'id_punto_venta', nullable: true })
+  idPuntoVenta: number | null;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

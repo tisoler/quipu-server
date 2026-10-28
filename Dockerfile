@@ -1,6 +1,6 @@
 # Dockerfile para quipu-server (NestJS Backend)
 
-FROM node:20-alpine AS builder
+FROM node:24.22.1-alpine AS builder
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ COPY . .
 RUN pnpm run build
 
 # Imagen de producción
-FROM node:20-alpine
+FROM node:24.22.1-alpine
 
 WORKDIR /app
 
@@ -37,7 +37,7 @@ RUN pnpm install --prod --frozen-lockfile
 COPY --from=builder /app/dist ./dist
 
 # Exponer puerto
-EXPOSE 3062
+EXPOSE 3035
 
 # Comando para iniciar la aplicación
 CMD ["node", "dist/src/main.js"]

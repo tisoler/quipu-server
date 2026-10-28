@@ -1,0 +1,44 @@
+services:
+  # Backend API
+  quipu-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: quipu-server
+    ports:
+      - "3035:3035"
+    environment:
+      # Usar el nombre del contenedor de la BD como host
+      DB_HOST: bd-postgres
+      DB_PORT: 5432 # En el docker container usa el puerto 5432 (internamente debemos conectarnos a este), hacia afuera el server expone el 5433 para acceder a la base que está en el contenedor bd-postgres
+      DB_USERNAME: quipu_usuario_bd
+      DB_PASSWORD: Gabino2026!
+      DB_DATABASE: quipu
+      PORT: 3035
+      JWT_SECRET: gabino-quipu
+      JWT_EXPIRES_IN: 15m
+      JWT_REFRESH_SECRET: gabino-quipu-gini
+      JWT_REFRESH_EXPIRES_IN: 24h
+      # Facturación ARCA y Spaces: salen del .env (untracked) de este directorio
+      # en el servidor. Fallan fuerte si faltan las obligatorias.
+      ARCA_MASTER_KEY: ${ARCA_MASTER_KEY:?configurar ARCA_MASTER_KEY en el .env del servidor}
+      ARCA_ENTORNO: ${ARCA_ENTORNO:?configurar ARCA_ENTORNO (homologacion|produccion) en el .env del servidor}
+      DO_SPACES_ENDPOINT: ${DO_SPACES_ENDPOINT:-}
+      DO_SPACES_REGION: ${DO_SPACES_REGION:-nyc3}
+      DO_SPACES_KEY: ${DO_SPACES_KEY:-}
+      DO_SPACES_SECRET: ${DO_SPACES_SECRET:-}
+      DO_SPACES_BUCKET: ${DO_SPACES_BUCKET:-}
+      DO_SPACES_PUBLIC_URL: ${DO_SPACES_PUBLIC_URL:-}
+    networks:
+      - quipu-network
+    restart: unless-stopped
+    volumes:
+      # Montar migraciones si necesitas ejecutarlas manualmente
+      - ./migrations:/app/migrations:ro
+
+networks:
+  quipu-network:
+    # Nombre estable sin importar el directorio del proyecto: la BD externa
+    # (bd-postgres) y otros proyectos se conectan a quipu_quipu-network.
+    external: true
+    name: quipu_quipu-network

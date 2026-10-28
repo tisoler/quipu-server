@@ -20,6 +20,7 @@ export class AuthController {
       nombreUsuario: user.nombreUsuario,
       idEmpresa: user.idEmpresa,
       nombreEmpresa: user.nombreEmpresa,
+      condicionIvaEmpresa: user.condicionIvaEmpresa || null,
       permisos: user.permisos || [],
       roles: user.roles || [],
     };
