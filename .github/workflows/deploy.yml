@@ -19,9 +19,9 @@ jobs:
           port: ${{ secrets.DROPLET_PORT || 22 }}
           script: |
             if [ "${{ github.ref_name }}" = "main" ]; then
-              APP_DIR=/var/www/quipu/quipu-server
+              APP_DIR=/var/www/quipu/prod/server
             else
-              APP_DIR=/var/www/quipu-test/quipu-server
+              APP_DIR=/var/www/quipu/test/server
             fi
             cd $APP_DIR || exit 1
             git fetch origin
