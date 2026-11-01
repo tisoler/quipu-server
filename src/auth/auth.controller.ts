@@ -21,6 +21,7 @@ export class AuthController {
       idEmpresa: user.idEmpresa,
       nombreEmpresa: user.nombreEmpresa,
       condicionIvaEmpresa: user.condicionIvaEmpresa || null,
+      arcaEntorno: user.arcaEntorno || null,
       permisos: user.permisos || [],
       roles: user.roles || [],
     };

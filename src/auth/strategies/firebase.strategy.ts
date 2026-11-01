@@ -1,4 +1,5 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import { ExtractJwt } from 'passport-jwt';
@@ -18,6 +19,7 @@ if (!admin.apps.length) {
 export class FirebaseStrategy extends PassportStrategy(Strategy, 'firebase') {
   constructor(
     private empresasService: EmpresasService,
+    private configService: ConfigService,
   ) {
     super();
   }
@@ -76,6 +78,7 @@ export class FirebaseStrategy extends PassportStrategy(Strategy, 'firebase') {
         idEmpresa: idEmpresa,
         nombreEmpresa: empresa?.nombre || null,
         condicionIvaEmpresa: empresa?.condicionIva || null,
+        arcaEntorno: this.configService.get<string>('ARCA_ENTORNO') || 'homologacion',
         roles: roles,
         permisos: permisos,
       };
