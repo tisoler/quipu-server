@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import * as soap from 'soap';
 import { EntornoArca } from '../entities/credenciales-arca.entity';
 import { WSFE_URLS } from './arca.constants';
+import { arcaAxios } from './arca-http';
 
 export interface AuthArca {
   token: string;
@@ -121,7 +122,9 @@ export class WsfeService {
 
   private async getClient(entorno: EntornoArca): Promise<soap.Client> {
     if (!this.clients[entorno]) {
-      this.clients[entorno] = await soap.createClientAsync(WSFE_URLS[entorno], {});
+      this.clients[entorno] = await soap.createClientAsync(WSFE_URLS[entorno], {
+        request: arcaAxios(),
+      });
     }
     return this.clients[entorno];
   }
