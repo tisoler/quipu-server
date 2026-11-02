@@ -1,6 +1,6 @@
 # Quipu Server
 
-API backend para la aplicación Quipu, construida con NestJS y PostgreSQL.
+API backend para la aplicación Quipu, construida con NestJS y PostgreSQL. 
 
 ## Requisitos
 
