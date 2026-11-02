@@ -29,6 +29,7 @@
     "@nestjs/platform-express": "^10.3.0",
     "@nestjs/swagger": "^7.1.17",
     "@nestjs/typeorm": "^10.0.1",
+    "axios": "^1.21.0",
     "bcryptjs": "^2.4.3",
     "bwip-js": "^4.11.4",
     "class-transformer": "^0.5.1",

@@ -4,6 +4,7 @@ import * as forge from 'node-forge';
 import { XMLParser } from 'fast-xml-parser';
 import { EntornoArca } from '../entities/credenciales-arca.entity';
 import { WSAA_URLS, SERVICE_WSFE } from './arca.constants';
+import { arcaAxios } from './arca-http';
 
 export interface TicketAccesoArca {
   token: string;
@@ -103,7 +104,9 @@ export class WsaaService {
 
   private async getClient(entorno: EntornoArca): Promise<soap.Client> {
     if (!this.clients[entorno]) {
-      this.clients[entorno] = await soap.createClientAsync(WSAA_URLS[entorno], {});
+      this.clients[entorno] = await soap.createClientAsync(WSAA_URLS[entorno], {
+        request: arcaAxios(),
+      });
     }
     return this.clients[entorno];
   }
