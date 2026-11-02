@@ -36,5 +36,3 @@ export function arcaAxios() {
   }
   return cachedInstance;
 }
-  return cachedInstance;
-}
