@@ -6,9 +6,15 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // CORS
+  // CORS: orígenes permitidos por env (coma-separados) para no tocar
+  // código ante cada dominio nuevo (test y prod tienen URLs distintas).
+  const origins = (process.env.CORS_ORIGINS ||
+    '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   app.enableCors({
-    origin: ['http://localhost:3036', 'http://localhost:5173', 'https://quipu1.tisoler.net.ar'],
+    origin: origins,
     credentials: true,
   });
 
