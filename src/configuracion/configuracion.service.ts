@@ -8,6 +8,7 @@ import { PuntoVenta } from '../entities/punto-venta.entity';
 import { CredencialesArca, EntornoArca } from '../entities/credenciales-arca.entity';
 import { encryptSecret, decryptSecret } from '../common/crypto.util';
 import { TicketAccesoService } from '../facturacion/ticket-acceso.service';
+import { WsfeService } from '../facturacion/wsfe.service';
 import { UpdateEmpresaFiscalDto, CreatePuntoVentaDto, UpdatePuntoVentaDto } from './dto/configuracion.dto';
 import { GuardarCredencialesArcaDto, ProbarConexionDto } from './dto/credenciales.dto';
 
@@ -19,6 +20,7 @@ export class ConfiguracionService {
     @InjectRepository(CredencialesArca) private credencialesRepository: Repository<CredencialesArca>,
     private configService: ConfigService,
     private ticketAccesoService: TicketAccesoService,
+    private wsfeService: WsfeService,
   ) { }
 
   // ---------- Empresa (datos fiscales) ----------
@@ -122,8 +124,33 @@ export class ConfiguracionService {
     return { id: saved.id, entorno: saved.entorno, vencimiento: saved.vencimiento };
   }
 
-  async probarConexion(idEmpresa: number, dto: ProbarConexionDto) {
+  /** Puntos de venta habilitados en ARCA para Web Services (RECE). */
+  async verificarPuntosVenta(idEmpresa: number, dto: ProbarConexionDto) {
     const entorno = (dto.entorno || this.configService.get<string>('ARCA_ENTORNO') || EntornoArca.HOMOLOGACION) as EntornoArca;
+    const cred = await this.credencialesRepository.findOne({
+      where: { idEmpresa, entorno, activo: true },
+      order: { id: 'DESC' },
+    });
+    if (!cred) throw new BadRequestException(`No hay credenciales cargadas para el entorno ${entorno}`);
+
+    const empresa = await this.getEmpresa(idEmpresa);
+    if (!empresa.cuit) throw new BadRequestException('La empresa no tiene CUIT');
+
+    const masterKey = this.configService.get<string>('ARCA_MASTER_KEY');
+    if (!masterKey) throw new BadRequestException('Falta ARCA_MASTER_KEY en la configuración del servidor');
+
+    const cuit = empresa.cuit.replace(/\D/g, '');
+    const clavePrivada = decryptSecret(cred.clavePrivadaCifrada, masterKey);
+    const ta = await this.ticketAccesoService.obtenerTicket(idEmpresa, entorno, cuit, cred.certificado, clavePrivada);
+    const habilitados = await this.wsfeService.puntosVentaHabilitados(entorno, {
+      token: ta.token,
+      sign: ta.sign,
+      cuit,
+    });
+    return { entorno, habilitados };
+  }
+
+  async probarConexion(idEmpresa: number, dto: ProbarConexionDto) {    const entorno = (dto.entorno || this.configService.get<string>('ARCA_ENTORNO') || EntornoArca.HOMOLOGACION) as EntornoArca;
     const cred = await this.credencialesRepository.findOne({
       where: { idEmpresa, entorno, activo: true },
       order: { id: 'DESC' },

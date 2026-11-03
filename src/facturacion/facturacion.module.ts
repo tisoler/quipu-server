@@ -34,6 +34,6 @@ import { SpacesModule } from '../spaces/spaces.module';
   ],
   controllers: [FacturacionController],
   providers: [FacturacionService, PdfFacturaService, WsaaService, WsfeService, TicketAccesoService],
-  exports: [FacturacionService, PdfFacturaService, WsaaService, TicketAccesoService],
+  exports: [FacturacionService, PdfFacturaService, WsaaService, WsfeService, TicketAccesoService],
 })
 export class FacturacionModule { }

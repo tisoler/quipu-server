@@ -52,6 +52,38 @@ export interface ResultadoCae {
 export class WsfeService {
   private clients: Record<string, soap.Client> = {};
 
+  /**
+   * Puntos de venta habilitados en ARCA para Web Services (RECE).
+   * Sirve para validar antes de emitir y para mostrarlo en Configuración.
+   */
+  async puntosVentaHabilitados(entorno: EntornoArca, auth: AuthArca): Promise<number[]> {
+    const client = await this.getClient(entorno);
+
+    const result: any = await new Promise((resolve, reject) => {
+      client.FEParamGetPtosVenta(
+        {
+          Auth: { Token: auth.token, Sign: auth.sign, Cuit: auth.cuit },
+        },
+        (err: any, res: any) => {
+          if (err) return reject(err);
+          resolve(res);
+        },
+      );
+    });
+
+    const r = result?.FEParamGetPtosVentaResult;
+    if (r?.Errors?.Err) {
+      const errs = (Array.isArray(r.Errors.Err) ? r.Errors.Err : [r.Errors.Err])
+        .map((e: any) => `${e.Code}: ${e.Msg}`)
+        .join(' | ');
+      throw new Error(`Error ARCA: ${errs}`);
+    }
+
+    const pts = r?.ResultGet?.PtoVenta;
+    const arr = Array.isArray(pts) ? pts : pts ? [pts] : [];
+    return arr.map((p: any) => Number(p.Nro)).filter((n: number) => !isNaN(n));
+  }
+
   async ultimoAutorizado(entorno: EntornoArca, auth: AuthArca, puntoVenta: number, tipoCbte: number): Promise<number> {
     const client = await this.getClient(entorno);
 
