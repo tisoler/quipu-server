@@ -84,3 +84,18 @@ export function buildCodigoBarras(
     String(caeVencimiento).padStart(8, '0')
   );
 }
+
+/**
+ * Nombre de archivo como la web de ARCA:
+ * CUIT(11) + tipoComprobante(3) + puntoVenta(5) + nro(8).
+ * Ej: 20300724680_001_00005_00000001.pdf (Factura A).
+ */
+export function nombreArchivoComprobante(
+  cuit: string,
+  tipoComprobante: number,
+  puntoVenta: number,
+  nroComprobante: number,
+): string {
+  const c = cuit.replace(/\D/g, '').padStart(11, '0');
+  return `${c}_${String(tipoComprobante).padStart(3, '0')}_${String(puntoVenta).padStart(5, '0')}_${String(nroComprobante).padStart(8, '0')}.pdf`;
+}

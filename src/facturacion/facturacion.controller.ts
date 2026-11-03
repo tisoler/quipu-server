@@ -22,6 +22,7 @@ import { FirebaseGuard } from '../auth/guards/firebase.guard';
 import { PermissionsGuard } from '../auth/guards/permissions.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { Comprobante, EstadoComprobante } from '../entities/comprobante.entity';
+import { nombreArchivoComprobante } from './arca.constants';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Venta } from '../entities/venta.entity';
@@ -98,11 +99,17 @@ export class FacturacionController {
     }
 
     const buffer = await this.pdfService.generar(comprobante, copia);
+    const snap = comprobante.snapshot || {};
+    const nombre = (snap as any)?.empresa?.cuit
+      ? nombreArchivoComprobante(
+          (snap as any).empresa.cuit,
+          comprobante.tipoComprobante,
+          comprobante.puntoVenta,
+          comprobante.nroComprobante,
+        )
+      : `comprobante_${comprobante.puntoVenta}_${comprobante.nroComprobante}_${copia}.pdf`;
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `inline; filename="comprobante_${comprobante.puntoVenta}_${comprobante.nroComprobante}_${copia}.pdf"`,
-    );
+    res.setHeader('Content-Disposition', `inline; filename="${nombre}"`);
     res.send(buffer);
   }
 }

@@ -26,6 +26,7 @@ import {
   CONDICION_IVA_IDS,
   MONEDA_PESOS,
   buildCodigoBarras,
+  nombreArchivoComprobante,
   TipoComprobanteArca,
 } from './arca.constants';
 import { EmitirFacturaDto } from './dto/emitir-factura.dto';
@@ -35,8 +36,15 @@ export function round2(n: number): number {
 }
 
 export function formatDateYYYYMMDD(d: Date): string {
-  const p = (n: number) => String(n).padStart(2, '0');
-  return `${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}`;
+  // Fecha fiscal argentina, independiente del timezone del servidor
+  // (las ventas de 21:00 a 00:00 hora local no deben sellarse "mañana").
+  const parts = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Argentina/Buenos_Aires',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(d);
+  return parts.replace(/-/g, '');
 }
 
 export function yyyymmddToIso(s: string): string {
@@ -227,6 +235,20 @@ export class FacturacionService {
     );
     const auth = { token: ta.token, sign: ta.sign, cuit };
 
+    // Validación amigable previa: si el punto no está habilitado para WSFE,
+    // fallar en criollo. Si la consulta falla, se sigue igual (fail-open)
+    // y ARCA responderá con su propio error.
+    try {
+      const habilitados = await this.wsfeService.puntosVentaHabilitados(entorno, auth);
+      if (!habilitados.includes(puntoVenta.numero)) {
+        throw new BadRequestException(
+          `El punto de venta ${puntoVenta.numero} no está habilitado en ARCA para Web Services (RECE). Revisalo en Configuración.`,
+        );
+      }
+    } catch (e) {
+      if (e instanceof BadRequestException) throw e;
+    }
+
     const ultimo = await this.wsfeService.ultimoAutorizado(entorno, auth, puntoVenta.numero, receptor.tipoComprobante);
     const cbteDesde = ultimo + 1;
     const cbteFch = formatDateYYYYMMDD(new Date());
@@ -341,8 +363,9 @@ export class FacturacionService {
     }
 
     const buffer = await this.pdfService.generar(comprobante, CopiaComprobante.ORIGINAL);
-    const letra = letraTipoComprobante(comprobante.tipoComprobante);
-    const nombre = `Factura-${letra}-${String(comprobante.puntoVenta).padStart(5, '0')}-${String(comprobante.nroComprobante).padStart(8, '0')}.pdf`;
+    const empresa = await this.empresaRepository.findOne({ where: { id: idEmpresa } });
+    const cuit = ((empresa?.cuit || (comprobante.snapshot as any)?.empresa?.cuit) || '').replace(/\D/g, '');
+    const nombre = nombreArchivoComprobante(cuit, comprobante.tipoComprobante, comprobante.puntoVenta, comprobante.nroComprobante);
     const url = await this.spacesService.subirFacturaPdf(idEmpresa, nombre, buffer);
     return { url };
   }

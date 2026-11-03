@@ -6,11 +6,11 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   ParseIntPipe,
   Request,
   UseGuards,
-} from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+} from '@nestjs/common';import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { ConfiguracionService } from './configuracion.service';
 import { UpdateEmpresaFiscalDto, CreatePuntoVentaDto, UpdatePuntoVentaDto } from './dto/configuracion.dto';
 import { GuardarCredencialesArcaDto, ProbarConexionDto } from './dto/credenciales.dto';
@@ -86,5 +86,12 @@ export class ConfiguracionController {
   @ApiOperation({ summary: 'Probar conexión con ARCA (WSAA)' })
   probarConexion(@Body() dto: ProbarConexionDto, @Request() req) {
     return this.configuracionService.probarConexion(req.user.idEmpresa, dto);
+  }
+
+  @Get('arca/puntos-venta-habilitados')
+  @Permissions('lectura:configuracion')
+  @ApiOperation({ summary: 'Puntos de venta habilitados en ARCA para Web Services' })
+  puntosVentaHabilitados(@Query() dto: ProbarConexionDto, @Request() req) {
+    return this.configuracionService.verificarPuntosVenta(req.user.idEmpresa, dto);
   }
 }
